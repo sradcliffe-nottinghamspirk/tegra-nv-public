@@ -39,10 +39,6 @@
 				reg = <0x1a>;
 //				clocks = <&wm8904_mclk>;
 				clocks = <&bpmp TEGRA234_CLK_AUD_MCLK>;
-				assigned-clocks = <&bpmp TEGRA234_CLK_AUD_MCLK>;
-//				assigned-clock-rates = <12000000>;
-//				nvidia-audio-card,mclk-rate = <12000000>;
-//				nvidia,mclk-rate = <12000000>;
 				clock-names = "mclk";
 				DCVDD-supply = <&hdr40_vdd_3v3>; //<&reg_wm8904>;
 				DBVDD-supply = <&hdr40_vdd_3v3>;
@@ -69,11 +65,8 @@
 	fragment@2 {
 		target = <&tegra_sound>;
 		__overlay__ {
-//		assigned-clocks = <&bpmp TEGRA234_CLK_AUD_MCLK>;
-//		assigned-clock-rates = <12000000>;
-//		nvidia-audio-card,mclk-fs = <0>;
-//		nvidia-audio-card,mclk-rate = <12000000>;
-//		nvidia,mclk-rate = <12000000>;
+		assigned-clock-rates = <0>, <12000000>;
+//		nvidia-audio-card,mclk-fs = <256>;
 
 		nvidia-audio-card,widgets =
 //			"Headphone",    "WM Headphone Out",
