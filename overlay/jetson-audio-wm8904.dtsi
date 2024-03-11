@@ -1,0 +1,204 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ * Copyright (c) 2019-2023, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * Jetson Device-tree overlay for Wolfram WM8904.
+ */
+
+#include <dt-bindings/clock/tegra234-clock.h>
+#include <dt-bindings/pinctrl/pinctrl-tegra.h>
+
+/ {
+	overlay-name = "OtoDX WM8904";
+	jetson-header-name = "Jetson 40pin Header";
+	compatible = JETSON_COMPATIBLE;
+
+//	fragment@0 {
+//		target-path = "/";
+//		__overlay__ {
+//			clocks {
+//				wm8904_mclk: wm8904_mclk {
+//					compatible = "fixed-clock";
+//					#clock-cells = <0>;
+//					clock-frequency = <12288000>;
+//					clock-output-names = "wm8904-mclk";
+//					status = "okay";
+//				};
+//			};
+//		};
+//	};
+
+	fragment@1 {
+		target = <&gen1_i2c>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			wm8904: wm8904@1a {
+				compatible = "wlf,wm8904";
+				reg = <0x1a>;
+//				clocks = <&wm8904_mclk>;
+				clocks = <&bpmp TEGRA234_CLK_AUD_MCLK>;
+				assigned-clocks = <&bpmp TEGRA234_CLK_AUD_MCLK>;
+//				assigned-clock-rates = <12000000>;
+//				nvidia-audio-card,mclk-rate = <12000000>;
+//				nvidia,mclk-rate = <12000000>;
+				clock-names = "mclk";
+				DCVDD-supply = <&hdr40_vdd_3v3>; //<&reg_wm8904>;
+				DBVDD-supply = <&hdr40_vdd_3v3>;
+				AVDD-supply = <&hdr40_vdd_3v3>;
+				CPVDD-supply = <&hdr40_vdd_3v3>;
+				MICVDD-supply = <&hdr40_vdd_3v3>;
+
+				#sound-dai-cells = <0>;
+				status = "okay";
+
+				sound-name-prefix = "WM";
+
+				port {
+					wm8904_ep: endpoint {
+						remote-endpoint = <&hdr40_snd_i2s_dap_ep>;
+						//mclk-fs = <256>;
+						link-name = "wm8904-playback";
+					};
+				};
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&tegra_sound>;
+		__overlay__ {
+//		assigned-clocks = <&bpmp TEGRA234_CLK_AUD_MCLK>;
+//		assigned-clock-rates = <12000000>;
+//		nvidia-audio-card,mclk-fs = <0>;
+//		nvidia-audio-card,mclk-rate = <12000000>;
+//		nvidia,mclk-rate = <12000000>;
+
+		nvidia-audio-card,widgets =
+//			"Headphone",    "WM Headphone Out",
+			"Microphone",   "WM Mic",
+//			"Line",         "WM Line In",
+//			"Line",         "WM Line Out",
+//			"Microphone",	"WM MICBIAS",
+			"Speaker",	"WM Int Spk",
+			"Microphone",	"WM Int Mic";
+
+		nvidia-audio-card,routing =		
+//			"WM IN2L",		"WM Line In",			
+//			"WM IN2R",		"WM Line In",		
+			"WM Mic",		"WM MICBIAS",			
+			"WM IN1L",		"WM Int Mic",
+			"WM Int Spk",		"WM LINEOUTL";
+//			"WM Int Spk,		"WM_LINEOUTR";
+//			"WM Headphone",		"WM HPOUTL",
+//   			"WM Headphone",		"WM HPOUTR";
+		};
+
+//		fixed-regulators {
+//			reg_wm5904: regulator@26 {
+//				compatible = "regulator-fixed";
+//				reg = <26>;
+//				regulator-name = "wm8904-supply";
+//			};
+//		};
+	};
+
+	fragment@3 {
+		target = <&hdr40_snd_link_i2s>; //<&i2s2_to_codec>
+		__overlay__ {
+			link-name = "wm8904-playback";
+			bitclock-master;
+			frame-master;
+
+			codec {
+				sound-dai = <&wm8904>;
+				prefix = "WM";
+			};
+		};
+	};
+
+	fragment@4 {
+		target = <&pinmux>;
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&jetson_io_pinmux>;
+
+			jetson_io_pinmux: exp-header-pinmux {
+				hdr40-pin7 {
+					nvidia,pins = HDR40_PIN7; //"soc_gpio59_pac6";
+					nvidia,function = "aud";
+					nvidia,pin-label = "aud_mclk";
+					nvidia,tristate = <TEGRA_PIN_DISABLE>;
+					nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+				};
+
+				hdr40-pin12 {
+					nvidia,pins = HDR40_PIN12;
+					nvidia,function = HDR40_I2S;
+					nvidia,pull = <TEGRA_PIN_PULL_DOWN>;
+					nvidia,tristate = <TEGRA_PIN_DISABLE>;
+					nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+				};
+
+				hdr40-pin35 {
+					nvidia,pins = HDR40_PIN35;
+					nvidia,function = HDR40_I2S;
+					nvidia,pull = <TEGRA_PIN_PULL_DOWN>;
+					nvidia,tristate = <TEGRA_PIN_DISABLE>;
+					nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+				};
+
+				hdr40-pin38 {
+					nvidia,pins = HDR40_PIN38;
+					nvidia,function = HDR40_I2S;
+					nvidia,pull = <TEGRA_PIN_PULL_DOWN>;
+					nvidia,tristate = <TEGRA_PIN_ENABLE>;
+					nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+				};
+
+				hdr40-pin40 {
+					nvidia,pins = HDR40_PIN40;
+					nvidia,function = HDR40_I2S;
+					nvidia,pull = <TEGRA_PIN_PULL_DOWN>;
+					nvidia,tristate = <TEGRA_PIN_DISABLE>;
+					nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+				};
+			};
+		};
+	};
+
+	fragment@5 {
+		target = <&tegra_sound_graph>;
+		__overlay__ {
+			widgets =
+	//			"Headphone",    "WM Headphone Out",
+				"Microphone",   "WM Mic",
+	//			"Line",         "WM Line In",
+	//			"Line",         "WM Line Out",
+	//			"Microphone",	"WM MICBIAS",
+				"Speaker",	"WM Int Spk",
+				"Microphone",	"WM Int Mic";
+
+			routing =		
+	//			"WM IN2L",	"WM Line In",			
+	//			"WM IN2R",	"WM Line In",		
+				"WM Mic",	"WM MICBIAS",			
+				"WM IN1L",	"WM Int Mic",
+				"WM Int Spk",	"WM LINEOUTL",
+				"WM Int Spk",	"WM_LINEOUTR";
+	//			"WM Headphone",	"WM HPOUTL",
+	//   			"WM Headphone",	"WM HPOUTR";
+
+		};
+	};
+
+	fragment@6 {
+		target = <&hdr40_snd_i2s_dap_ep>;
+		__overlay__ {
+			bitclock-master;
+			frame-master;
+			remote-endpoint = <&wm8904_ep>;
+		};
+	};
+};
