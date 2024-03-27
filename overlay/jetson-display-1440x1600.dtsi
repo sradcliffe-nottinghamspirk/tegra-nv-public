@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ * Copyright (c) 2019-2023, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * Jetson Fixed Display Output 1440x1600 -- requires driver change to enable.
+ */
+
+/ {
+	overlay-name = "OtoDX Fixed Resolution";
+	compatible = JETSON_COMPATIBLE;
+
+	fragment@0 {
+		target = <&display>;
+		__overlay__ {
+			display-timings {
+				display-connector-0 {
+					dcb-index = <0>;
+					stream-0 {
+						timings-phandle = <&mode0>;
+					};
+				};
+			};
+
+			mode0: 1440-1600-60Hz {
+				clock-frequency-khz = <154170>;
+				hactive = <1440>;
+				vactive = <1600>;
+				hfront-porch = <70>;
+				hback-porch = <45>;
+				hsync-len = <35>;
+				vfront-porch = <12>;
+				vback-porch = <2>;
+				vsync-len = <2>;
+				rrx1k = <60000>;	// 60Hz Refresh
+			};
+		};
+	};
+};
